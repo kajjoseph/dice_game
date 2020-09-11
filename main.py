@@ -23,9 +23,17 @@ class Game(tk.Frame):
         self.dice = [Die(self) for i in range(5)]
         self.scores = {i: None for i in SCORES}
         self.temp_scores = {i: 0 for i in SCORES}
-        # TODO: pack and test ScoreFrames
-        for i in self.dice: i.pack()
-        tk.Button(self, text='Roll', command=self.roll).pack()
+        self.remaining_rolls = 3
+        # TODO: Implement win condition
+        for i, n in enumerate(self.dice): n.grid(row=i, column=0, padx=25)
+        tk.Button(self, text='Roll', command=self.roll).grid(row=i+1, column=0, padx=25)
+        row, col = 0, 1
+        for i, n in self.scores.items():
+            ScoreFrame(self, i, n).grid(row=row, column=col)
+            row += 1
+            if row == 6:
+                row = 0
+                col += 1
 
     def check_scores(self):
         self.temp_scores = {i: 0 for i in SCORES}
@@ -40,7 +48,7 @@ class Game(tk.Frame):
                 self.temp_scores['Four of a Kind'] = sum(values)
         if len(set(values)) == 1:
             self.temp_scores['Five of a Kind'] = 50
-        str_values = [str(a) for a in values]
+        str_values = sorted(list(set([str(a) for a in values])))
         for i in ['1234', '2345', '3456']:
             if i in ''.join(str_values):
                 self.temp_scores['Small Straight'] = 30
@@ -52,10 +60,12 @@ class Game(tk.Frame):
             print(f'{a}: {n}')
 
     def roll(self):
-        for i in self.dice:
-            if i.bool.get() or not i.num.get():
-                i.num.set(rng.randint(1, 6))
-        self.check_scores()
+        if self.remaining_rolls:
+            for i in self.dice:
+                if i.bool.get() or not i.num.get():
+                    i.num.set(rng.randint(1, 6))
+            self.check_scores()
+            self.remaining_rolls -= 1
 
 
 class Die(tk.Checkbutton):
@@ -75,11 +85,29 @@ class ScoreFrame(tk.Frame):
         tk.Frame.__init__(self, master)
         self.name = name
         self.score = score
+        self.score_var = tk.IntVar()
         self.button = tk.Button(self, text=name, command=self.press)
+        self.label = tk.Label(self, textvar=self.score_var)
+        self.button.pack(side='left')
+        self.label.pack(side='left')
 
     def press(self):
         if self.score is None:
             self.master.scores[self.name] = self.master.temp_scores[self.name]
+            self.score = self.master.temp_scores[self.name]
+            self.score_var.set(self.score)
+            for i in self.master.dice:
+                i.num.set(0)
+                i.bool.set(True)
+            self.master.remaining_rolls = 3
+
+
+class StatusFrame(tk.Frame):
+
+    def __init__(self, master):
+        self.master = master
+        tk.Frame.__init__(self, master)
+        self.top_score = sum([self.master.scores[i] for i in range(1, 7)])
 
 
 if __name__ == '__main__':
