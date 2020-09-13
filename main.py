@@ -25,7 +25,8 @@ class Game(tk.Frame):
         self.temp_scores = {i: 0 for i in SCORES}
         self.remaining_rolls = 3
         # TODO: Implement win condition
-        for i, n in enumerate(self.dice): n.grid(row=i, column=0, padx=25)
+        for i, n in enumerate(self.dice):
+            n.grid(row=i, column=0, padx=25)
         tk.Button(self, text='Roll', command=self.roll).grid(row=i+1, column=0, padx=25)
         row, col = 0, 1
         for i, n in self.scores.items():
@@ -36,6 +37,9 @@ class Game(tk.Frame):
                 col += 1
 
     def check_scores(self):
+        '''
+        Checks scores in a manner completely unrelated to the supplied information
+        '''
         self.temp_scores = {i: 0 for i in SCORES}
         values = sorted([n.num.get() for n in self.dice])
         for i in range(1, 7):
@@ -66,6 +70,9 @@ class Game(tk.Frame):
                     i.num.set(rng.randint(1, 6))
             self.check_scores()
             self.remaining_rolls -= 1
+
+    def victory(self):
+        
 
 
 class Die(tk.Checkbutton):
